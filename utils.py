@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 from PIL import Image
 from insightface.app import FaceAnalysis
+import torch
 
 # functions from InstantID
 
@@ -35,8 +36,12 @@ def resize_img(input_image, max_side=1280, min_side=1024, size=None,
 
 class FeatureExtractor:
     def __init__(self, img_size=(640, 640)):
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.img_size = img_size
-        self.app = FaceAnalysis(name='buffalo_l', root='./', providers=['CUDAExecutionProvider', 'CPUExecutionProvider'])
+        if self.device == torch.device('cpu'):
+            self.app = FaceAnalysis(name='buffalo_l', root='./', providers=['CPUExecutionProvider'])
+        else:
+            self.app = FaceAnalysis(name='buffalo_l', root='./', providers=['CUDAExecutionProvider'])
         self.app.prepare(ctx_id=0, det_size=img_size)
 
     def extract_features(self, face_image: Image) -> np.ndarray:
