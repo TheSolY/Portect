@@ -3,6 +3,8 @@ import numpy as np
 from PIL import Image
 from insightface.app import FaceAnalysis
 import torch
+from typing import Tuple
+
 
 # functions from InstantID
 
@@ -52,3 +54,16 @@ class FeatureExtractor:
         face_emb = face_info['embedding']
         return face_emb
 
+# end functions from InstantID
+
+
+def row_cosine_similarity(vec1, mat1):
+    # row wise cosine similarity between a single embedding vector and a matrix of many embeddings.
+    cosine = np.dot(mat1, vec1) / (np.linalg.norm(vec1) * np.linalg.norm(mat1, axis=1) + 1e-7)
+    return cosine
+
+
+def farthest_neighbor(face_emb: np.ndarray, id_centroids: np.ndarray):
+    sims = row_cosine_similarity(face_emb, id_centroids)
+    idx = np.argmax(sims)
+    return idx, id_centroids[idx]
