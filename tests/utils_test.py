@@ -29,8 +29,8 @@ class FarthestNeighborTest(unittest.TestCase):
 
     def test_same_as_row(self):
         res_idx, res_vec = utils.farthest_neighbor(self.vec_a, self.mat_a)
-        self.assertEqual(res_idx, 1)
-        self.assertTrue(np.array_equal(res_vec, self.vec_a))
+        self.assertEqual(res_idx, 3)
+        self.assertFalse(np.array_equal(res_vec, self.vec_a))
 
 
 if __name__ == '__main__':

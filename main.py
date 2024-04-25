@@ -13,6 +13,6 @@ print(image_emb.shape)
 id_centroids = torch.load('assets/celeba_id_embedding_centroids')
 print(id_centroids.shape)
 
-idx, vec = farthest_neighbor(image_emb, id_centroids.numpy())
+idx, vec = farthest_neighbor(image_emb, id_centroids[1:].numpy())
 
 print(idx)

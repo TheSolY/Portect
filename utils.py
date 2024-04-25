@@ -65,5 +65,5 @@ def row_cosine_similarity(vec1, mat1):
 
 def farthest_neighbor(face_emb: np.ndarray, id_centroids: np.ndarray):
     sims = row_cosine_similarity(face_emb, id_centroids)
-    idx = np.argmax(sims)
+    idx = np.argmin(np.abs(sims))       # farthest neighbor is the least similar
     return idx, id_centroids[idx]
