@@ -95,3 +95,15 @@ def farthest_neighbor(face_emb: np.ndarray, id_centroids: np.ndarray):
     sims = row_cosine_similarity(face_emb, id_centroids)
     idx = np.argmin(sims)       # farthest neighbor is the least similar
     return idx, id_centroids[idx]
+
+
+def single_image_path_from_index(selected_id: int, annot_path: str) -> str:
+    # Finds an image that belongs to the selected identity and returns its path
+    selected_id = str(selected_id)
+    with open(annot_path, 'r') as f:
+        annot = f.readlines()
+        for line in annot:
+            filename, id = line.strip().split(' ')
+            if id == selected_id:
+                return filename
+    raise FileNotFoundError
