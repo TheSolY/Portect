@@ -46,12 +46,12 @@ identity_idx = id_identity_idxs[idx].item()
 # Later replace the image for image with the embedding centroid, when we can face swap from embedding
 target_id_filenames = all_image_path_from_index(identity_idx,  os.path.join(celeba_path, 'identity_CelebA.txt'))
 
-for i, image in enumerate(os.listdir(org_images_dir)):
-    _, file_extention = os.path.splitext(image)
+for i, image_filename in enumerate(os.listdir(org_images_dir)):
+    _, file_extention = os.path.splitext(image_filename)
     if file_extention in ('.jpg', '.jpeg', '.png'):
-        face_swapper.swap_face(os.path.join(org_images_dir, image),
+        face_swapper.swap_face(os.path.join(org_images_dir, image_filename),
                                os.path.join(celeba_path, 'img_align_celeba', target_id_filenames[i]),
-                               os.path.join(swapped_imaged_dir, str(i) + file_extention))
+                               os.path.join(swapped_imaged_dir, image_filename))
 
 
 

@@ -4,13 +4,18 @@ from PIL import Image
 from insightface.app import FaceAnalysis
 from insightface.model_zoo.inswapper import INSwapper
 from diffusers.utils import load_image
-from typing import List
+from typing import List, Union
+from torch import Tensor
 
 
 # functions from InstantID
 
-def convert_from_image_to_cv2(img: Image) -> np.ndarray:
-    return cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+def convert_image_to_cv2(img: Union[Tensor, Image.Image]) -> np.ndarray:
+    if isinstance(img, Tensor):
+        img = img.squeeze().numpy().transpose(1, 2, 0)
+    else:
+        img = np.array(img)
+    return cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
 
 
 def resize_img(input_image, max_side=1280, min_side=1024, size=None,
@@ -44,18 +49,15 @@ class FeatureExtractor:
         self.app = FaceAnalysis(name='buffalo_l', root='./', providers=['CPUExecutionProvider', 'CUDAExecutionProvider'])
         self.app.prepare(ctx_id=0, det_size=img_size)
 
-    def find_max_face(self, face_img: Image):
+    def find_max_face(self, face_img: Union[Tensor, Image.Image]):
         # Finds the largest face in an image
-        face_info = self.app.get(cv2.cvtColor(np.array(face_img), cv2.COLOR_RGB2BGR))
+        face_info = self.app.get(convert_image_to_cv2(face_img))
         face_info = sorted(face_info, key=lambda x:(x['bbox'][2]-x['bbox'][0])*(x['bbox'][3]-x['bbox'][1]))[-1]
         return face_info
 
-    def extract_features(self, face_image: Image) -> np.ndarray:
+    def extract_features(self, face_image: Union[Tensor, Image.Image]) -> np.ndarray:
         # This function is the phi of the cloak learning model
         face_info = self.find_max_face(face_image)
-        # face_image = resize_img(face_image)
-        # face_info = self.app.get(cv2.cvtColor(np.array(face_image), cv2.COLOR_RGB2BGR))
-        # face_info = sorted(face_info, key=lambda x:(x['bbox'][2]-x['bbox'][0])*(x['bbox'][3]-x['bbox'][1]))[-1] # only use the maximum face
         face_emb = face_info['embedding']
         return face_emb
 
@@ -118,3 +120,4 @@ def all_image_path_from_index(selected_id: int, annot_path: str) -> List[str]:
             if id == selected_id:
                 path_list.append(filename)
         return path_list
+
