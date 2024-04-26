@@ -1,13 +1,10 @@
 import cv2
 import numpy as np
 from PIL import Image
-import insightface
 from insightface.app import FaceAnalysis
 from insightface.model_zoo.inswapper import INSwapper
-from insightface.data import get_image as ins_get_image
 from diffusers.utils import load_image
-import torch
-from diffusers.models import ControlNetModel
+from typing import List
 
 
 # functions from InstantID
@@ -107,3 +104,17 @@ def single_image_path_from_index(selected_id: int, annot_path: str) -> str:
             if id == selected_id:
                 return filename
     raise FileNotFoundError
+
+
+def all_image_path_from_index(selected_id: int, annot_path: str) -> List[str]:
+    # Finds all the image paths that belong to the selected identity
+    # consider to do it once and save a lookup table
+    selected_id = str(selected_id)
+    path_list = []
+    with open(annot_path, 'r') as f:
+        annot = f.readlines()
+        for line in annot:
+            filename, id = line.strip().split(' ')
+            if id == selected_id:
+                path_list.append(filename)
+        return path_list

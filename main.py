@@ -1,4 +1,4 @@
-from utils import FaceSwapper, farthest_neighbor, single_image_path_from_index
+from utils import FaceSwapper, farthest_neighbor, all_image_path_from_index
 from diffusers.utils import load_image
 import torch
 import os
@@ -22,7 +22,8 @@ idx, vec = farthest_neighbor(image_emb, id_centroids.numpy())
 identity_idx = id_identity_idxs[idx].item()
 print(f'farthest id number: {identity_idx}')
 
-src_id_filename = single_image_path_from_index(identity_idx, os.path.join(celeba_path, 'identity_CelebA.txt'))
+filenames = all_image_path_from_index(identity_idx, os.path.join(celeba_path, 'identity_CelebA.txt'))
+src_id_filename = filenames[0]
 srd_id_path = os.path.join(celeba_path, 'img_align_celeba', src_id_filename)
 
 face_swapper.swap_face(image_url, srd_id_path, './1.png')
