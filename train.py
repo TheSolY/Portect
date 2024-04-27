@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader, TensorDataset
 import os
 from torchvision.io import read_image, ImageReadMode
 from torchvision.transforms import Resize
-from model import PortectModel
+from model import PortectModel, PortectLoss
 from utils import FeatureExtractor
 
 # the root that contains the data in the expected format
@@ -16,7 +16,9 @@ feature_extractor = FeatureExtractor()
 def phi(img):
     return torch.tensor(feature_extractor.extract_features(img))
 
-model = PortectModel(phi=phi)
+
+model = PortectModel()
+loss_fn = PortectLoss(phi=phi)
 
 org_images_dir = os.path.join(data_root, 'org_images')
 target_images_dir = os.path.join(data_root, 'swapped_images')
@@ -52,7 +54,7 @@ target_images = torch.stack(target_images)
 train_dataset = TensorDataset(org_images, target_images)
 train_loader = DataLoader(train_dataset, batch_size=1, shuffle=True)
 
-optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+optimizer = torch.optim.SGD(model.params, lr=0.1)
 
 for epoch in range(EPOCHS):
     loss = 0
@@ -62,7 +64,8 @@ for epoch in range(EPOCHS):
 
         optimizer.zero_grad()
 
-        loss = model.forward(inputs, targets)
+        outputs = model.forward(inputs)
+        loss = loss_fn(inputs, outputs, targets)
         loss.backward()
 
         optimizer.step()
