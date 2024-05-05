@@ -204,3 +204,6 @@ def all_image_path_from_index(selected_id: int, annot_path: str) -> List[str]:
                 path_list.append(filename)
         return path_list
 
+
+def interpolate_embedding(src_emb: np.ndarray, target_emb: np.ndarray, alpha: float) -> np.ndarray:
+    return (1-alpha) * src_emb + alpha * target_emb
