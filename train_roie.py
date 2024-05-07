@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader, TensorDataset
 import os
 from torchvision.io import read_image, ImageReadMode
 from torchvision.transforms import Resize
-from model import PortectModel, PortectLoss
+from model_roie import PortectModel, PortectLoss
 from utils import FeatureExtractor
 import sys
 import os
