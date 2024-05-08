@@ -80,7 +80,7 @@ class EmbSwapper(INSwapper):
 
 def convert_image_to_cv2(img: Union[Tensor, Image.Image]) -> np.ndarray:
     if isinstance(img, Tensor):
-        img = img.squeeze().numpy().transpose(1, 2, 0)
+        img = img.squeeze().detach().numpy().transpose(1, 2, 0)
     else:
         img = np.array(img)
     return cv2.cvtColor(img, cv2.COLOR_RGB2BGR)

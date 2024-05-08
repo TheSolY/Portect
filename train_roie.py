@@ -8,6 +8,7 @@ from utils import FeatureExtractor
 import sys
 import os
 from contextlib import contextmanager
+from lpips import LPIPS
 
 # This context manager captures stdout
 @contextmanager
@@ -81,7 +82,7 @@ target_images = torch.stack(target_images)
 train_dataset = TensorDataset(org_images, target_images)
 train_loader = DataLoader(train_dataset, batch_size=1, shuffle=True)
 
-optimizer = torch.optim.SGD(model.params, lr=0.0001)
+optimizer = torch.optim.SGD(model.params, lr=0.1)
 
 for i, data in enumerate(train_loader):
     if (i==0):
@@ -92,6 +93,9 @@ for i, data in enumerate(train_loader):
         loss = 0
         optimizer.zero_grad()
         x_additive, delta_x = model.forward(x)
+        with suppress_stdout():
+          percept = LPIPS()        
+          lpips_similarity = percept(x, x_additive)
         try:
             with suppress_stdout():
               loss = PortectLoss(x, x_additive, x_swapped, delta_x, phi)
@@ -100,7 +104,13 @@ for i, data in enumerate(train_loader):
             print(f"error for image {i}")
 
         optimizer.step()
-
-        print(f"\tepoch #{epoch}, loss: {loss.item()}")
+        
+        # Print gradients
+        for name, param in model.named_parameters():
+            if param.requires_grad:
+                 print(name, param.grad)
+        #print(f"x-x_additive: {x-x_additive}")
+        #print(f"x-x_additive max value: {torch.max(torch.abs(x-x_additive))}")
+        print(f"\tepoch #{epoch}, loss: {loss.item()}, lpips similarity: {lpips_similarity.item()}")
 
 torch.save(model.delta_x, './delta')
