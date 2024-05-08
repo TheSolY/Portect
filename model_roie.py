@@ -4,26 +4,39 @@ import lpips
 from lpips import LPIPS
 from utils import FeatureExtractor
 
+
+feature_extractor = FeatureExtractor()
+
+
 class PortectModel(nn.Module):
     def __init__(self, input_size=(640,640)):
         super(PortectModel, self).__init__()
-        self.delta_x = torch.nn.Parameter(torch.rand((640,640), requires_grad=True))
-        self.params = torch.nn.ParameterList([torch.nn.Parameter(self.delta_x)])
+        self.phi = phi
+        self.delta_x = nn.Sequential(
+            nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(64, 3, kernel_size=3, stride=1, padding=1)
+        )
+        self.lpips = LPIPS()
 
-    def forward(self, x):
-        x_additive = x + self.delta_x
-        delta_x = self.delta_x
-        return x_additive, delta_x
+    def forward(self, x, x_swapped):
+        phi_x = self.phi(x)
+        phi_x_swapped = self.phi(x_swapped)
+        delta_x = self.delta_x(x)
+        x_perturbed = x + delta_x
+        phi_x_perturbed = self.phi(x_perturbed)
+        lpips_score = self.lpips(x, x_perturbed)
+        return phi_x, phi_x_swapped, phi_x_perturbed, lpips_score, x_perturbed
 
-def PortectLoss(x, x_additive, x_swapped, delta_x, phi, alpha = 0.5, p=0.1):
-  percept = LPIPS()
+def PortectLoss(phi_x, phi_x_swapped, phi_x_perturbed, lpips_score, alpha = 0.5, p=0.05):
+    identity_loss = torch.norm(phi_x_swapped - phi_x_perturbed, p=2)
+    perceptual_loss = torch.relu(lpips_score - p)
+    total_loss = identity_loss + alpha * perceptual_loss
 
-  images_norm_term = torch.norm(phi(x_swapped) - phi(x_additive))
-  regularization_term = alpha * torch.max(percept(x, x_additive) - p, torch.tensor(0.0))
-  
-  loss = images_norm_term + regularization_term
-  return loss
+    return total_loss
 
 
+def phi(img):
+    return torch.tensor(feature_extractor.extract_features(img))
 
 

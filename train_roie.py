@@ -26,13 +26,6 @@ data_root = './assets'
 EPOCHS = 10
 IMAGE_SIZE = (640, 640)
 
-feature_extractor = FeatureExtractor()
-
-
-def phi(img):
-    return torch.tensor(feature_extractor.extract_features(img))
-
-
 def load_and_prep_image(img_path):
     img = read_image(img_path, mode=ImageReadMode.RGB)
     img = resize(img)
@@ -82,35 +75,34 @@ target_images = torch.stack(target_images)
 train_dataset = TensorDataset(org_images, target_images)
 train_loader = DataLoader(train_dataset, batch_size=1, shuffle=True)
 
-optimizer = torch.optim.SGD(model.params, lr=0.1)
+optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
 
 for i, data in enumerate(train_loader):
     if (i==0):
       continue
     x, x_swapped = data
+    x = x.float()
+    x_swapped = x_swapped.float()
     print(f"image #{i}")
+    model.train()
     for epoch in range(EPOCHS):
-        loss = 0
         optimizer.zero_grad()
-        x_additive, delta_x = model.forward(x)
-        with suppress_stdout():
-          percept = LPIPS()        
-          lpips_similarity = percept(x, x_additive)
+        phi_x, phi_x_swapped, phi_x_perturbed, lpips_score, x_perturbed = model(x, x_swapped)
         try:
             with suppress_stdout():
-              loss = PortectLoss(x, x_additive, x_swapped, delta_x, phi)
+              loss = PortectLoss(phi_x, phi_x_swapped, phi_x_perturbed, lpips_score)
             loss.backward()
         except IndexError:
             print(f"error for image {i}")
-
         optimizer.step()
-        
         # Print gradients
-        for name, param in model.named_parameters():
-            if param.requires_grad:
-                 print(name, param.grad)
+        #for name, param in model.named_parameters():
+            #if param.requires_grad:
+                 #print(name, param.grad)
         #print(f"x-x_additive: {x-x_additive}")
         #print(f"x-x_additive max value: {torch.max(torch.abs(x-x_additive))}")
-        print(f"\tepoch #{epoch}, loss: {loss.item()}, lpips similarity: {lpips_similarity.item()}")
+        print(f"\tepoch #{epoch}, loss: {loss.item()}, lpips_score: {lpips_score.item()}")
+    
+    model.eval()
 
 torch.save(model.delta_x, './delta')
