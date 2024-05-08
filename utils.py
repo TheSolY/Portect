@@ -129,6 +129,11 @@ class FeatureExtractor:
         face_emb = face_info['embedding']
         return face_emb
 
+    def extract_bounding_box(self, face_image: Union[Tensor, Image.Image]) -> np.ndarray:
+        face_info = self.find_max_face(face_image)
+        return face_info['bbox']
+
+
 # end functions from InstantID
 
 
