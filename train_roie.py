@@ -9,6 +9,7 @@ import sys
 import os
 from contextlib import contextmanager
 from lpips import LPIPS
+import copy
 
 # This context manager captures stdout
 @contextmanager
@@ -23,7 +24,7 @@ def suppress_stdout():
 
 # the root that contains the data in the expected format
 data_root = './assets'
-EPOCHS = 10
+EPOCHS = 30
 IMAGE_SIZE = (640, 640)
 
 def load_and_prep_image(img_path):
@@ -33,7 +34,6 @@ def load_and_prep_image(img_path):
     return img
 
 
-model = PortectModel()
 
 org_images_dir = os.path.join(data_root, 'org_images')
 target_images_dir = os.path.join(data_root, 'swapped_images')
@@ -75,33 +75,48 @@ target_images = torch.stack(target_images)
 train_dataset = TensorDataset(org_images, target_images)
 train_loader = DataLoader(train_dataset, batch_size=1, shuffle=True)
 
-optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
+feature_extractor = FeatureExtractor()
 
 for i, data in enumerate(train_loader):
     if (i==0):
       continue
     x, x_swapped = data
+    initial_input = torch.rand((1,1024))
+
+    bounding_box = feature_extractor.extract_bounding_box(x)
+    bounding_box_int = [int(b) for b in bounding_box]
+    cloak_w = bounding_box_int[2] - bounding_box_int[0]
+    cloak_h = bounding_box_int[3] - bounding_box_int[1]
+    input_size = (cloak_w, cloak_h)
+    row_slice = slice(bounding_box_int[0], bounding_box_int[0] + cloak_w)
+    col_slice = slice(bounding_box_int[1], bounding_box_int[1] + cloak_h)
+    model = PortectModel(input_size)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.01, betas=(0.9, 0.999), eps=1e-8)
     x = x.float()
     x_swapped = x_swapped.float()
+    initial_input = torch.cat((x[:,:,row_slice, col_slice], x_swapped[:,:,row_slice, col_slice]), dim=1)
+    #initial_input.view(1, 6, cloak_w, cloak_h)
     print(f"image #{i}")
     model.train()
     for epoch in range(EPOCHS):
         optimizer.zero_grad()
-        phi_x, phi_x_swapped, phi_x_perturbed, lpips_score, x_perturbed = model(x, x_swapped)
+        beta = model(initial_input) # shape of bounding box
+        beta = beta.view(-1, input_size[0],input_size[1])
+
+        x_perturbed = copy.deepcopy(x)
+        x_perturbed[:,:,row_slice, col_slice] = torch.clip(beta * x[:,:,row_slice, col_slice] + (1 - beta) * x_swapped[:,:, row_slice, col_slice], 0, 255.0)
         try:
             with suppress_stdout():
-              loss = PortectLoss(phi_x, phi_x_swapped, phi_x_perturbed, lpips_score)
+              loss, identity_loss, similarity_loss = PortectLoss(x, x_swapped, x_perturbed, alpha = 0, p=0.05)
             loss.backward()
+            # debug - print gradients
+            #for name, param in model.named_parameters():
+            #  print(name, param.requires_grad)
         except IndexError:
             print(f"error for image {i}")
+            break
         optimizer.step()
-        # Print gradients
-        #for name, param in model.named_parameters():
-            #if param.requires_grad:
-                 #print(name, param.grad)
-        #print(f"x-x_additive: {x-x_additive}")
-        #print(f"x-x_additive max value: {torch.max(torch.abs(x-x_additive))}")
-        print(f"\tepoch #{epoch}, loss: {loss.item()}, lpips_score: {lpips_score.item()}")
+        print(f"\tepoch #{epoch}, loss: {loss.item():.20f}, identity_loss: {identity_loss.item()}, similarity_loss: {similarity_loss.item()}")
     
     model.eval()
 
