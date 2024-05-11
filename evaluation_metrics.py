@@ -1,13 +1,13 @@
-from utils import FeatureExtractor
+from diffusers.utils import load_image
 import numpy as np
 import os
 import torch
 import torch.nn.functional as F
 import argparse
-from compute_idx_emb import compute_idx_embedding
 from torchvision.io import read_image, ImageReadMode
 from torchvision.transforms import Resize
 
+from utils import FeatureExtractor
 
 IMAGE_SIZE = (640, 640)
 feature_extractor = FeatureExtractor()
@@ -18,6 +18,7 @@ def compute_face_embedding(image_path):
     img = resize(img)
     img = img.float()
     return torch.tensor(feature_extractor.extract_features(img))
+
 
 def compute_avg_embedding(images_path):
   images_embedding = []
@@ -43,7 +44,6 @@ def identity_score_matching(generated_image_path, identity_embedding):
     return identity_score
 
 
-
 def calculate_FDFR_and_ISM(generated_images_path, original_images_path):
     image_list = os.listdir(generated_images_path)
     fail_detection_count = 0
@@ -66,18 +66,13 @@ def calculate_FDFR_and_ISM(generated_images_path, original_images_path):
     return avg_ism, fail_detection_ratio
 
 
-def parse_args():
-    parser = argparse.ArgumentParser(description='FDFR and ISM evaluation')
-    parser.add_argument('--data_dir', type=str, default='', help='path to generated images')
-    parser.add_argument('--emb_dirs', type=str, default='', help='path to original images')
-    args = parser.parse_args()
-    return args
+avg_ism, fail_detection_ratio = calculate_FDFR_and_ISM('/content/Portect/assets/swapped_images', '/content/Portect/assets/org_images')
+print(avg_ism, fail_detection_ratio)
 
-def main():
-    args = parse_args()
-    avg_ism, fail_detection_ratio = calculate_FDFR_and_ISM(args.data_dir, args.emb_dirs)
-    print("ISM (Identity Score Matching) and FDR (Face Detection Failure Rate) are {} and {}".format(avg_ism, fail_detection_ratio))
-    
-if __name__ == '__main__':
-    main()
+
+
+
+
+
+
 
