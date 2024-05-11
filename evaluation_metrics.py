@@ -1,3 +1,4 @@
+from brisque import BRISQUE
 from diffusers.utils import load_image
 import numpy as np
 import os
@@ -10,6 +11,7 @@ from evaluations.backbones.iresnet import iresnet18
 from pathlib import Path
 from torchvision import io
 from torchvision import transforms
+from PIL import Image
 
 from utils import FeatureExtractor
 
@@ -49,14 +51,14 @@ def identity_score_matching(generated_image_path, identity_embedding):
     return identity_score
 
 
-def calculate_FDFR_and_ISM(generated_images_path, original_images_path):
-    image_list = os.listdir(generated_images_path)
+def calculate_FDFR_and_ISM(path_to_generated_images, path_to_original_images):
+    image_list = os.listdir(path_to_generated_images)
     fail_detection_count = 0
     total_ism = 0
-    avg_embedding = compute_avg_embedding(original_images_path) 
+    avg_embedding = compute_avg_embedding(path_to_original_images) 
 
     for image_name in image_list:
-        image_path = os.path.join(generated_images_path, image_name)
+        image_path = os.path.join(path_to_generated_images, image_name)
         ism = identity_score_matching(image_path, avg_embedding)
         if ism==-1:
             fail_detection_count += 1
@@ -71,13 +73,13 @@ def calculate_FDFR_and_ISM(generated_images_path, original_images_path):
     return avg_ism, fail_detection_ratio
 
 
-def calculate_SER_FIQ_score(generated_images_path):
+def calculate_SER_FIQ_score(path_to_generated_images):
     torch_device = torch.device("cpu")
     normalize = transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
-    image_list = os.listdir(generated_images_path)
-    SER_FIQ_scores = 0
+    image_list = os.listdir(path_to_generated_images)
+    SER_FIQ_total_scores = 0
     for image_name in image_list:
-      image_path = os.path.join(generated_images_path, image_name)
+      image_path = os.path.join(path_to_generated_images, image_name)
       resnet = iresnet18(dropout=0.4,num_features=512, use_se=False).to(torch_device)
       resnet.load_state_dict(torch.load("evaluations/checkpoints/resnet18.pth", map_location=torch_device))
       resnet.eval()
@@ -87,9 +89,25 @@ def calculate_SER_FIQ_score(generated_images_path):
       image = normalize(image)
       image = image.unsqueeze(0)
       score = resnet.calculate_serfiq(image, T=10, scaling=5.0)
-      SER_FIQ_scores += score.item()
-    SER_FIQ_average_score = SER_FIQ_scores/len(image_list)
+      SER_FIQ_total_scores += score.item()
+    SER_FIQ_average_score = SER_FIQ_total_scores/len(image_list)
     return SER_FIQ_average_score
+
+def calculate_brisque_score(path_to_generated_images):
+  brisque_obj = BRISQUE(url=False)
+  brisque_total_score = 0
+  count = 0
+  image_list = os.listdir(path_to_generated_images)
+
+  for image_name in image_list:
+      if "png" in image_name or "jpg" in image_name:
+        image_path = os.path.join(path_to_generated_images, image_name)
+        image = Image.open(image_path)
+        brisque_score = brisque_obj.score(image)
+        brisque_total_score += brisque_score
+        count += 1
+  brisque_average_score = brisque_total_score/count
+  return brisque_average_score
 
 path_to_generated_images = '/content/Portect/assets/swapped_images'
 path_to_original_images = '/content/Portect/assets/org_images'
@@ -97,8 +115,9 @@ path_to_original_images = '/content/Portect/assets/org_images'
 avg_ism, fail_detection_ratio = calculate_FDFR_and_ISM(path_to_generated_images, path_to_original_images)
 print(avg_ism, fail_detection_ratio)
 SER_FIQ_average_score = calculate_SER_FIQ_score(path_to_generated_images)
-print(f"SER-FIQ Score: {SER_FIQ_average_score:.8f}")
-
+print(f"SER-FIQ average score: {SER_FIQ_average_score:.8f}")
+brisque_average_score = calculate_brisque_score(path_to_generated_images)
+print(f"Brisque average score: {brisque_average_score:.8f}")
 
 
 

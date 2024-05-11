@@ -1,3 +1,4 @@
+brisque
 diffusers==0.27.2
 insightface==0.7.3
 lpips==0.1.4
@@ -10,4 +11,3 @@ tensorflow==2.16.1
 torch==2.2.1
 torchvision==0.17.1
 typing_extensions==4.10.0
-
