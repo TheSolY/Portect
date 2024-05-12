@@ -33,7 +33,7 @@ for i, filename in enumerate(os.listdir(src_images_dir)):
     _, file_extention = os.path.splitext(filename)
     if file_extention in ('.jpg', '.jpeg', '.png', '.JPG'):
         image = load_image(os.path.join(src_images_dir, filename))
-        image = resize_img(image, 512, 512, pad_to_max_side=True)
+        image = resize_img(image, 1024, 1024, pad_to_max_side=True)
         img_to_save = np.array(image.copy())[:, :, ::-1]
         cv2.imwrite(os.path.join(org_image_dir, str(i) + file_extention), img_to_save)
 
