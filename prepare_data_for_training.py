@@ -47,14 +47,14 @@ id_centroids = torch.load('assets/celeba_id_embedding_centroids')
 id_identity_idxs = torch.load('assets/unique_ids')
 idx, vec = farthest_neighbor(org_images_emb_centroid, id_centroids.numpy())
 
-target_emb = interpolate_embedding(org_images_emb_centroid, vec, 0.05)
+target_emb = interpolate_embedding(org_images_emb, vec, 0.05)
 
 # Create the target (face swapped) images
-for image_filename in os.listdir(org_image_dir):
+for i, image_filename in enumerate(os.listdir(org_image_dir)):
     _, file_extention = os.path.splitext(image_filename)
     if file_extention in ('.jpg', '.jpeg', '.png', '.JPG'):
         face_swapper.swap_face(os.path.join(org_image_dir, image_filename),
-                               target_emb,
+                               target_emb[i],
                                os.path.join(swapped_image_dir, image_filename))
 
 
