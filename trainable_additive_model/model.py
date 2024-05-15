@@ -11,10 +11,6 @@ class PortectAdditiveModel(nn.Module):
         cloak_w = self.bb[2] - self.bb[0]
         cloak_h = self.bb[3] - self.bb[1]
         self.delta = torch.autograd.Variable(torch.rand((cloak_w, cloak_h)), requires_grad=True)
-        # cloak_copy = cloak.clone()
-        # padded_cloak = torch.zeros(input_size, requires_grad=False)
-        # padded_cloak[bounding_box[0]:bounding_box[2], bounding_box[1]:bounding_box[3]].copy_(cloak_copy)
-        # self.delta = padded_cloak
         self.params = torch.nn.ParameterList([torch.nn.Parameter(self.delta)])
 
     def forward(self, inputs):
