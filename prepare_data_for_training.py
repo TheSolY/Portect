@@ -8,7 +8,7 @@ from PIL import ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 # the data should be in a folder called "src_images" inside the root directory
-images_root = './assets/'
+images_root = './training_images/'
 celeba_path = '/datasets/celeba'
 
 src_images_dir = os.path.join(images_root, 'src_images')
