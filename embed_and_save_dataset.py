@@ -2,11 +2,9 @@ import numpy as np
 import torch
 from torchvision.datasets import CelebA
 from utils import FeatureExtractor
-import scipy.io as sio
 
 embedding_size = 512
 dataset = CelebA(root='/datasets/', download=False, target_type='identity')
-# dataset = CelebA(root='/Users/solyarkoni-port-mac/Datasets', download=False, target_type='identity')
 len_dataset = len(dataset)
 print(f'nuber of samples: {len_dataset}')
 

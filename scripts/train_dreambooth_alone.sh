@@ -1,7 +1,7 @@
 export MODEL_PATH="stabilityai/stable-diffusion-xl-base-1.0"
-export INSTANCE_DIR="./training_images/swapped_images"
+export INSTANCE_DIR="./training_images/"
 export CLASS_DIR="./training_images/class-person"
-export OUTPUT_DIR="dreambooth-outputs/tzipi_swapped_model/"
+export OUTPUT_DIR="dreambooth-outputs/"
 
 accelerate launch train_dreambooth_lora_sdxl.py \
   --pretrained_model_name_or_path=$MODEL_PATH  \

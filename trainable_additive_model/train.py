@@ -1,7 +1,7 @@
 import torch
-from torchvision.io import read_image, ImageReadMode
+from torchvision.io import read_image
 from torchvision.transforms import Resize
-from model import PortectAdditiveModel, PortectLoss
+from trainable_additive_model.model import PortectAdditiveModel, PortectLoss
 from utils import FeatureExtractor
 
 # the root that contains the data in the expected format
@@ -14,7 +14,6 @@ resize = Resize(IMAGE_SIZE)
 
 org_image = resize(read_image(org_image_path))
 target_image = resize(read_image(target_image_path))
-
 
 
 feature_extractor = FeatureExtractor()
