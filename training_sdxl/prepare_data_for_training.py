@@ -43,8 +43,8 @@ for i, filename in enumerate(os.listdir(src_images_dir)):
 org_images_emb = np.stack(org_images_emb)
 org_images_emb_centroid = org_images_emb.mean(axis=0)
 
-id_centroids = torch.load('assets/celeba_id_embedding_centroids')
-id_identity_idxs = torch.load('assets/unique_ids')
+id_centroids = torch.load('../assets/celeba_id_embedding_centroids')
+id_identity_idxs = torch.load('../assets/unique_ids')
 idx, vec = farthest_neighbor(org_images_emb_centroid, id_centroids.numpy())
 
 target_emb = interpolate_embedding(org_images_emb, vec, 0.05)
