@@ -171,7 +171,6 @@ class FaceSwapper2(FeatureExtractor):
         cv2.imwrite(save_path, res)
 
 
-
 def row_cosine_similarity(vec1, mat1):
     # row wise cosine similarity between a single embedding vector and a matrix of many embeddings.
     cosine = np.dot(mat1, vec1) / (np.linalg.norm(vec1) * np.linalg.norm(mat1, axis=1) + 1e-7)
