@@ -20,7 +20,7 @@ Install the minimal requirements:
 pip install -r requirements_minimal.txt
 ```
 Download the necessary models from 
-https://drive.google.com/drive/folders/1Mlo8B2GzL9j-70NyK4PIWkOBqAzLXeHw
+https://huggingface.co/ezioruan/inswapper_128.onnx/tree/main
 
 Run the script
 ```

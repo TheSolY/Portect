@@ -8,7 +8,7 @@ from PIL import ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
-def parse_args(input_args):
+def parse_args(input_args=None):
     parser = argparse.ArgumentParser(
         description='Cloak your images before using them online.'
     )
@@ -67,14 +67,16 @@ def main(args):
     target_emb = interpolate_embedding(org_images_emb, vec, 0.05)
 
     # Cloak and save the cloaked images
-    for i, image_filename in enumerate(os.listdir(image_dir)):
+    i = 0
+    for image_filename in os.listdir(image_dir):
         _, file_extention = os.path.splitext(image_filename)
         if file_extention in ('.jpg', '.jpeg', '.png', '.JPG'):
             face_swapper.swap_face(os.path.join(image_dir, image_filename),
                                    target_emb[i],
                                    os.path.join(args.output_dir, image_filename))
+            i += 1
 
-    print(f"Images save to {args.output_dir}")
+    print(f"Images saved to {args.output_dir}")
 
 
 if __name__ == "__main__":
