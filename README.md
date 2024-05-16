@@ -19,8 +19,8 @@ Install the minimal requirements:
 ```
 pip install -r requirements_minimal.txt
 ```
-Download the necessary models:
-
+Download the necessary models from 
+https://drive.google.com/drive/folders/1Mlo8B2GzL9j-70NyK4PIWkOBqAzLXeHw
 
 Run the script
 ```

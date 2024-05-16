@@ -1,13 +1,14 @@
 import argparse
 import os
-from utils import FaceSwapper2, farthest_neighbor, interpolate_embedding, resize_img
+from utils import FaceSwapper2, farthest_neighbor, interpolate_embedding
 from diffusers.utils import load_image
 import numpy as np
 import torch
 from PIL import ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
-def parse_args():
+
+def parse_args(input_args):
     parser = argparse.ArgumentParser(
         description='Cloak your images before using them online.'
     )
@@ -35,14 +36,14 @@ def parse_args():
         default='assets/celeba_id_embedding_centroids',
         help="Path to the target id embeddings file."
     )
-    args = parser.parse_args()
+    args = parser.parse_args(input_args)
     return args
 
 
 def main(args):
     image_dir = args.image_dir
     if not os.path.exists(args.output_dir):
-        os.makedirs(args.output_dir)
+        os.mkdir(args.output_dir)
 
     if not os.path.exists(image_dir):
         raise FileNotFoundError(f'{image_dir} not found')
@@ -72,6 +73,8 @@ def main(args):
             face_swapper.swap_face(os.path.join(image_dir, image_filename),
                                    target_emb[i],
                                    os.path.join(args.output_dir, image_filename))
+
+    print(f"Images save to {args.output_dir}")
 
 
 if __name__ == "__main__":

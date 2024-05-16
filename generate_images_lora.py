@@ -54,9 +54,6 @@ def parse_args(input_args=None):
 
     return args
 
-num_images = 10
-save_dir = '/tmp/sol/portect/gen_images_portect_org'
-
 
 def main(args):
     base_model = "stabilityai/stable-diffusion-xl-base-1.0"
