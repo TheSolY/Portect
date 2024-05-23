@@ -159,7 +159,7 @@ class FaceSwapper(FeatureExtractor):
 class FaceSwapper2(FeatureExtractor):
     def __init__(self, img_size=(640, 640)):
         super(FaceSwapper2, self).__init__(img_size=img_size)
-        self.swapper = EmbSwapper('./models/inswapper_128.onnx')
+        self.swapper = EmbSwapper('../models/inswapper_128.onnx')
 
     def swap_face(self, org_image_url: str, src_emb: np.array, save_path: str) -> Image:
         # Swaps the face in org_img to that of src_emb from embedding

@@ -8,9 +8,9 @@ from PIL import ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 # the data should be in a folder called "src_images" inside the root directory
-images_root = './training_images/'
+images_root = '../training_images/'
 celeba_path = '/datasets/celeba'
-
+shift_type = 'random' #farthest - farthest id, or random- interpolte with random values
 src_images_dir = os.path.join(images_root, 'src_images')
 if not os.path.exists(src_images_dir):
     raise FileNotFoundError(f'{src_images_dir} not found')
@@ -41,11 +41,15 @@ for i, filename in enumerate(os.listdir(src_images_dir)):
         org_images_emb.append(emb)
 
 org_images_emb = np.stack(org_images_emb)
-org_images_emb_centroid = org_images_emb.mean(axis=0)
 
-id_centroids = torch.load('../assets/celeba_id_embedding_centroids')
-id_identity_idxs = torch.load('../assets/unique_ids')
-idx, vec = farthest_neighbor(org_images_emb_centroid, id_centroids.numpy())
+if shift_type == 'farthest':
+    org_images_emb_centroid = org_images_emb.mean(axis=0)
+
+    id_centroids = torch.load('../assets/celeba_id_embedding_centroids')
+    id_identity_idxs = torch.load('../assets/unique_ids')
+    idx, vec = farthest_neighbor(org_images_emb_centroid, id_centroids.numpy())
+else:
+    vec = 2.0 * np.random.rand(org_images_emb[0].size).astype(np.float32) - 1.0
 
 target_emb = interpolate_embedding(org_images_emb, vec, 0.05)
 
